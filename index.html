@@ -13,7 +13,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f9f9f9;
+      background: #f8f8f8;
     }
 
     .sudoku-container {
@@ -22,63 +22,52 @@
       width: 90vmin;
       height: 90vmin;
       box-sizing: border-box;
-      border: 4px solid black; /* Gruba ramka całej planszy */
+      border: 4px solid black; /* Gruba ramka wokół całej planszy */
     }
 
     .cell {
+      border: 1px solid #aaa; /* Cienka ramka wewnętrzna */
       box-sizing: border-box;
-      border: 1px solid #999; /* Cienkie linie między komórkami */
-      background: white;
+      background-color: white;
     }
 
-    /* Grube linie co 3 komórki (pionowe) */
-    .cell:nth-child(3n) {
+    /* Grube linie co 3 kolumny */
+    .cell.col-3,
+    .cell.col-6 {
       border-right: 3px solid black;
     }
 
-    .cell:nth-child(n+73) {
+    /* Grube linie co 3 wiersze */
+    .cell.row-3,
+    .cell.row-6 {
       border-bottom: 3px solid black;
     }
 
-    /* Grube poziome linie – co 3 rzędy */
-    .cell:nth-child(n):nth-child(-n+27),
-    .cell:nth-child(n+28):nth-child(-n+54),
-    .cell:nth-child(n+55):nth-child(-n+81) {
-      border-bottom: 1px solid #999;
-    }
-
-    .cell:nth-child(n+1):nth-child(-n+9),
-    .cell:nth-child(n+10):nth-child(-n+18),
-    .cell:nth-child(n+19):nth-child(-n+27),
-    .cell:nth-child(n+28):nth-child(-n+36),
-    .cell:nth-child(n+37):nth-child(-n+45),
-    .cell:nth-child(n+46):nth-child(-n+54),
-    .cell:nth-child(n+55):nth-child(-n+63),
-    .cell:nth-child(n+64):nth-child(-n+72),
-    .cell:nth-child(n+73):nth-child(-n+81) {
-      /* Grube linie co 3 rzędy */
-      border-bottom: 1px solid #999;
-    }
-
-    /* Grube poziome linie po wierszach 3 i 6 */
-    .cell:nth-child(n+19):nth-child(-n+27),
-    .cell:nth-child(n+46):nth-child(-n+54) {
-      border-bottom: 3px solid black;
-    }
-
-    /* Gruba linia lewa */
-    .cell:nth-child(9n+1) {
+    /* Pierwsza kolumna */
+    .cell.col-1 {
       border-left: 3px solid black;
+    }
+
+    /* Pierwszy wiersz */
+    .cell.row-1 {
+      border-top: 3px solid black;
     }
   </style>
 </head>
 <body>
-  <div class="sudoku-container" id="board">
-    <script>
-      for (let i = 0; i < 81; i++) {
-        document.write('<div class="cell"></div>');
-      }
-    </script>
-  </div>
+  <div class="sudoku-container" id="board"></div>
+
+  <script>
+    const board = document.getElementById("board");
+
+    for (let i = 0; i < 81; i++) {
+      const row = Math.floor(i / 9) + 1;
+      const col = (i % 9) + 1;
+
+      const cell = document.createElement("div");
+      cell.classList.add("cell", `row-${row}`, `col-${col}`);
+      board.appendChild(cell);
+    }
+  </script>
 </body>
 </html>
