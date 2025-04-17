@@ -1,59 +1,79 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sudoku</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      margin: 0;
       padding: 20px;
+      font-family: sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      background: #f8f8f8;
+      height: 100vh;
+      background: #f9f9f9;
     }
 
     .sudoku-container {
-      width: 90vmin;
-      height: 90vmin;
       display: grid;
       grid-template-columns: repeat(9, 1fr);
-      grid-template-rows: repeat(9, 1fr);
-      border: 4px solid black;
+      width: 90vmin;
+      height: 90vmin;
       box-sizing: border-box;
+      border: 4px solid black; /* Gruba ramka całej planszy */
     }
 
     .cell {
-      border: 1px solid #aaa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 2vmin;
-      background-color: white;
+      box-sizing: border-box;
+      border: 1px solid #999; /* Cienkie linie między komórkami */
+      background: white;
     }
 
-    /* Grubsze linie co 3 wiersze i kolumny */
+    /* Grube linie co 3 komórki (pionowe) */
     .cell:nth-child(3n) {
-      border-right: 2px solid black;
+      border-right: 3px solid black;
     }
 
+    .cell:nth-child(n+73) {
+      border-bottom: 3px solid black;
+    }
+
+    /* Grube poziome linie – co 3 rzędy */
+    .cell:nth-child(n):nth-child(-n+27),
+    .cell:nth-child(n+28):nth-child(-n+54),
+    .cell:nth-child(n+55):nth-child(-n+81) {
+      border-bottom: 1px solid #999;
+    }
+
+    .cell:nth-child(n+1):nth-child(-n+9),
+    .cell:nth-child(n+10):nth-child(-n+18),
     .cell:nth-child(n+19):nth-child(-n+27),
+    .cell:nth-child(n+28):nth-child(-n+36),
+    .cell:nth-child(n+37):nth-child(-n+45),
     .cell:nth-child(n+46):nth-child(-n+54),
+    .cell:nth-child(n+55):nth-child(-n+63),
+    .cell:nth-child(n+64):nth-child(-n+72),
     .cell:nth-child(n+73):nth-child(-n+81) {
-      border-bottom: 2px solid black;
+      /* Grube linie co 3 rzędy */
+      border-bottom: 1px solid #999;
     }
 
-    /* Przeciwdziałanie brakowi prawej ramki ostatnich kolumn */
-    .cell:nth-child(9n) {
-      border-right: none;
+    /* Grube poziome linie po wierszach 3 i 6 */
+    .cell:nth-child(n+19):nth-child(-n+27),
+    .cell:nth-child(n+46):nth-child(-n+54) {
+      border-bottom: 3px solid black;
+    }
+
+    /* Gruba linia lewa */
+    .cell:nth-child(9n+1) {
+      border-left: 3px solid black;
     }
   </style>
 </head>
 <body>
-  <div class="sudoku-container">
-    <!-- Wygeneruj 81 komórek -->
+  <div class="sudoku-container" id="board">
     <script>
       for (let i = 0; i < 81; i++) {
         document.write('<div class="cell"></div>');
