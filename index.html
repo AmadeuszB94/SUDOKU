@@ -8,6 +8,7 @@
     body {
       margin: 0;
       padding: 20px;
+      font-family: sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -15,40 +16,46 @@
       background: #f8f8f8;
     }
 
-    .board {
+    .sudoku {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 4px; /* odstęp między blokami 3x3 */
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
       width: 90vmin;
       height: 90vmin;
     }
 
-    .block {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      border: 3px solid black; /* gruba ramka wokół każdej sekcji */
-    }
-
     .cell {
-      border: 1px solid #aaa; /* cienkie linie między komórkami */
       background: white;
+      aspect-ratio: 1 / 1;
+      box-sizing: border-box;
     }
   </style>
 </head>
 <body>
-  <div class="board">
-    <!-- 9 bloków 3x3 -->
-    <script>
-      for (let b = 0; b < 9; b++) {
-        document.write('<div class="block">');
-        for (let c = 0; c < 9; c++) {
-          document.write('<div class="cell"></div>');
-        }
-        document.write('</div>');
+  <div class="sudoku" id="sudoku"></div>
+
+  <script>
+    const container = document.getElementById("sudoku");
+
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        // Ustal grubość ramek na podstawie pozycji
+        const top = row % 3 === 0 ? 3 : 1;
+        const bottom = row === 8 ? 3 : 0;
+        const left = col % 3 === 0 ? 3 : 1;
+        const right = col === 8 ? 3 : 0;
+
+        cell.style.borderTop = `${top}px solid black`;
+        cell.style.borderBottom = `${bottom || 1}px solid black`;
+        cell.style.borderLeft = `${left}px solid black`;
+        cell.style.borderRight = `${right || 1}px solid black`;
+
+        container.appendChild(cell);
       }
-    </script>
-  </div>
+    }
+  </script>
 </body>
 </html>
