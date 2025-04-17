@@ -1,175 +1,64 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sudoku</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       padding: 20px;
-      margin: 0;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-
-    .controls {
-      margin-bottom: 10px;
-    }
-
-    .sudoku-board {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      max-width: 90vmin;
-      aspect-ratio: 1;
-      margin: 20px auto;
-      border: 4px solid black;
-    }
-
-    .cell {
-      border: 1px solid #999;
-      font-size: clamp(1rem, 3vw, 2rem);
       display: flex;
       justify-content: center;
       align-items: center;
-      aspect-ratio: 1;
-      cursor: pointer;
+      min-height: 100vh;
+      background: #f8f8f8;
     }
 
-    .cell:nth-child(3n) {
-      border-right: 4px solid black;
+    .sudoku-container {
+      width: 90vmin;
+      height: 90vmin;
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      border: 4px solid black;
+      box-sizing: border-box;
     }
+
+    .cell {
+      border: 1px solid #aaa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2vmin;
+      background-color: white;
+    }
+
+    /* Grubsze linie co 3 wiersze i kolumny */
+    .cell:nth-child(3n) {
+      border-right: 2px solid black;
+    }
+
     .cell:nth-child(n+19):nth-child(-n+27),
     .cell:nth-child(n+46):nth-child(-n+54),
     .cell:nth-child(n+73):nth-child(-n+81) {
-      border-bottom: 4px solid black;
-    }
-    .cell:nth-child(1),
-    .cell:nth-child(10),
-    .cell:nth-child(19),
-    .cell:nth-child(28),
-    .cell:nth-child(37),
-    .cell:nth-child(46),
-    .cell:nth-child(55),
-    .cell:nth-child(64),
-    .cell:nth-child(73) {
-      border-left: 4px solid black;
-    }
-    .cell:nth-child(-n+9) {
-      border-top: 4px solid black;
+      border-bottom: 2px solid black;
     }
 
-    .cell.fixed {
-      background-color: #e0e0e0;
-      font-weight: bold;
-    }
-
-    .number-pad {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 20px;
-    }
-
-    .number-btn {
-      width: 40px;
-      height: 40px;
-      font-size: 1.2rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .number-btn:hover {
-      background-color: #f0f0f0;
-    }
-
-    @media (max-width: 500px) {
-      .number-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-      }
+    /* Przeciwdziałanie brakowi prawej ramki ostatnich kolumn */
+    .cell:nth-child(9n) {
+      border-right: none;
     }
   </style>
 </head>
 <body>
-  <h1>🌱 Sudoku</h1>
-
-  <div class="controls">
-    <label>
-      <input type="checkbox" id="pencilMode" />
-      🖊️ Tryb ołówka
-    </label>
-  </div>
-
-  <div class="sudoku-board" id="sudokuBoard"></div>
-
-  <div class="number-pad">
-    <button class="number-btn" onclick="handleNumber(1)">1</button>
-    <button class="number-btn" onclick="handleNumber(2)">2</button>
-    <button class="number-btn" onclick="handleNumber(3)">3</button>
-    <button class="number-btn" onclick="handleNumber(4)">4</button>
-    <button class="number-btn" onclick="handleNumber(5)">5</button>
-    <button class="number-btn" onclick="handleNumber(6)">6</button>
-    <button class="number-btn" onclick="handleNumber(7)">7</button>
-    <button class="number-btn" onclick="handleNumber(8)">8</button>
-    <button class="number-btn" onclick="handleNumber(9)">9</button>
-    <button class="number-btn" onclick="handleNumber(0)">X</button>
-  </div>
-
-  <script>
-    const board = document.getElementById("sudokuBoard");
-    let selectedCell = null;
-
-    function createBoard() {
+  <div class="sudoku-container">
+    <!-- Wygeneruj 81 komórek -->
+    <script>
       for (let i = 0; i < 81; i++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        cell.dataset.index = i;
-        cell.addEventListener("click", () => selectCell(cell));
-        board.appendChild(cell);
+        document.write('<div class="cell"></div>');
       }
-    }
-
-    function selectCell(cell) {
-      if (selectedCell) selectedCell.classList.remove("selected");
-      selectedCell = cell;
-      cell.classList.add("selected");
-    }
-
-    function handleNumber(n) {
-      if (!selectedCell) return;
-
-      const pencilMode = document.getElementById("pencilMode").checked;
-      if (n === 0) {
-        selectedCell.textContent = "";
-      } else if (pencilMode) {
-        let notes = selectedCell.textContent.split("").filter(Boolean);
-        if (!notes.includes(n.toString())) {
-          notes.push(n);
-          notes.sort();
-        } else {
-          notes = notes.filter(d => d !== n.toString());
-        }
-        selectedCell.textContent = notes.join("");
-        selectedCell.style.fontSize = "0.7rem";
-      } else {
-        selectedCell.textContent = n;
-        selectedCell.style.fontSize = "clamp(1rem, 3vw, 2rem)";
-      }
-    }
-
-    createBoard();
-  </script>
+    </script>
+  </div>
 </body>
 </html>
