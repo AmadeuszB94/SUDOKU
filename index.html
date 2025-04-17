@@ -1,162 +1,172 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sudoku</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin: 20px;
+      padding: 20px;
+      margin: 0;
     }
 
     h1 {
-      font-size: 2em;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .controls {
       margin-bottom: 10px;
     }
 
     .sudoku-board {
       display: grid;
       grid-template-columns: repeat(9, 1fr);
-      width: 90vmin;
-      height: 90vmin;
-      margin: 0 auto;
-      border: 4px solid black; /* Gruba ramka wokół planszy */
+      max-width: 90vmin;
+      aspect-ratio: 1;
+      margin: 20px auto;
+      border: 4px solid black;
     }
 
     .cell {
-      border: 1px solid #aaa; /* Cienka ramka domyślna */
+      border: 1px solid #999;
+      font-size: clamp(1rem, 3vw, 2rem);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 2vmin;
       aspect-ratio: 1;
-      position: relative;
       cursor: pointer;
-      background-color: white;
     }
 
-    .cell.prefilled {
-      background-color: #eee;
+    .cell:nth-child(3n) {
+      border-right: 4px solid black;
+    }
+    .cell:nth-child(n+19):nth-child(-n+27),
+    .cell:nth-child(n+46):nth-child(-n+54),
+    .cell:nth-child(n+73):nth-child(-n+81) {
+      border-bottom: 4px solid black;
+    }
+    .cell:nth-child(1),
+    .cell:nth-child(10),
+    .cell:nth-child(19),
+    .cell:nth-child(28),
+    .cell:nth-child(37),
+    .cell:nth-child(46),
+    .cell:nth-child(55),
+    .cell:nth-child(64),
+    .cell:nth-child(73) {
+      border-left: 4px solid black;
+    }
+    .cell:nth-child(-n+9) {
+      border-top: 4px solid black;
+    }
+
+    .cell.fixed {
+      background-color: #e0e0e0;
       font-weight: bold;
     }
 
-    /* Grube linie co 3 kolumny */
-    .cell:nth-child(3n+1) {
-      border-left: 3px solid black;
-    }
-
-    .cell:nth-child(9n) {
-      border-right: 3px solid black;
-    }
-
-    /* Grube linie co 3 wiersze */
-    .cell:nth-child(n+1):nth-child(-n+9),
-    .cell:nth-child(n+28):nth-child(-n+36),
-    .cell:nth-child(n+55):nth-child(-n+63) {
-      border-top: 3px solid black;
-    }
-
-    .cell:nth-child(n+73) {
-      border-bottom: 3px solid black;
-    }
-
-    .controls {
+    .number-pad {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: 20px;
     }
 
-    .number-button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 1.5em;
+    .number-btn {
+      width: 40px;
+      height: 40px;
+      font-size: 1.2rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       cursor: pointer;
     }
 
-    .selected {
-      background-color: #ddd;
+    .number-btn:hover {
+      background-color: #f0f0f0;
     }
 
-    .pencil {
-      font-size: 1vmin;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      right: 2px;
-      bottom: 2px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      pointer-events: none;
-    }
-
-    .pencil div {
-      font-size: 1.2vmin;
-      text-align: center;
-      color: #666;
+    @media (max-width: 500px) {
+      .number-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <h1>🌱 Sudoku</h1>
+
   <div class="controls">
-    <label><input type="checkbox" id="pencilToggle"> 🖋️ Tryb ołówka</label>
+    <label>
+      <input type="checkbox" id="pencilMode" />
+      🖊️ Tryb ołówka
+    </label>
   </div>
-  <div class="sudoku-board" id="board"></div>
+
+  <div class="sudoku-board" id="sudokuBoard"></div>
+
+  <div class="number-pad">
+    <button class="number-btn" onclick="handleNumber(1)">1</button>
+    <button class="number-btn" onclick="handleNumber(2)">2</button>
+    <button class="number-btn" onclick="handleNumber(3)">3</button>
+    <button class="number-btn" onclick="handleNumber(4)">4</button>
+    <button class="number-btn" onclick="handleNumber(5)">5</button>
+    <button class="number-btn" onclick="handleNumber(6)">6</button>
+    <button class="number-btn" onclick="handleNumber(7)">7</button>
+    <button class="number-btn" onclick="handleNumber(8)">8</button>
+    <button class="number-btn" onclick="handleNumber(9)">9</button>
+    <button class="number-btn" onclick="handleNumber(0)">X</button>
+  </div>
 
   <script>
-    const boardElement = document.getElementById("board");
-    const pencilToggle = document.getElementById("pencilToggle");
+    const board = document.getElementById("sudokuBoard");
     let selectedCell = null;
-    let pencilMode = false;
-
-    pencilToggle.addEventListener("change", () => {
-      pencilMode = pencilToggle.checked;
-    });
 
     function createBoard() {
       for (let i = 0; i < 81; i++) {
         const cell = document.createElement("div");
-        cell.classList.add("cell");
-
-        cell.addEventListener("click", () => {
-          if (selectedCell) {
-            selectedCell.classList.remove("selected");
-          }
-          selectedCell = cell;
-          cell.classList.add("selected");
-        });
-
-        boardElement.appendChild(cell);
+        cell.className = "cell";
+        cell.dataset.index = i;
+        cell.addEventListener("click", () => selectCell(cell));
+        board.appendChild(cell);
       }
+    }
 
-      document.addEventListener("keydown", e => {
-        if (!selectedCell) return;
-        if (e.key >= "1" && e.key <= "9") {
-          if (pencilMode) {
-            if (!selectedCell.querySelector(".pencil")) {
-              const pencilDiv = document.createElement("div");
-              pencilDiv.classList.add("pencil");
-              for (let j = 1; j <= 9; j++) {
-                const mini = document.createElement("div");
-                mini.textContent = "";
-                pencilDiv.appendChild(mini);
-              }
-              selectedCell.appendChild(pencilDiv);
-            }
-            const index = parseInt(e.key) - 1;
-            selectedCell.querySelector(".pencil").children[index].textContent = e.key;
-          } else {
-            selectedCell.textContent = e.key;
-            const pencil = selectedCell.querySelector(".pencil");
-            if (pencil) pencil.remove();
-          }
-        } else if (e.key === "Backspace" || e.key === "Delete" || e.key === "0") {
-          selectedCell.textContent = "";
-          const pencil = selectedCell.querySelector(".pencil");
-          if (pencil) pencil.remove();
+    function selectCell(cell) {
+      if (selectedCell) selectedCell.classList.remove("selected");
+      selectedCell = cell;
+      cell.classList.add("selected");
+    }
+
+    function handleNumber(n) {
+      if (!selectedCell) return;
+
+      const pencilMode = document.getElementById("pencilMode").checked;
+      if (n === 0) {
+        selectedCell.textContent = "";
+      } else if (pencilMode) {
+        let notes = selectedCell.textContent.split("").filter(Boolean);
+        if (!notes.includes(n.toString())) {
+          notes.push(n);
+          notes.sort();
+        } else {
+          notes = notes.filter(d => d !== n.toString());
         }
-      });
+        selectedCell.textContent = notes.join("");
+        selectedCell.style.fontSize = "0.7rem";
+      } else {
+        selectedCell.textContent = n;
+        selectedCell.style.fontSize = "clamp(1rem, 3vw, 2rem)";
+      }
     }
 
     createBoard();
