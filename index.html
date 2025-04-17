@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sudoku</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 20px;
@@ -13,7 +17,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f8f8f8;
+      background: #f9f9f9;
     }
 
     .sudoku {
@@ -22,12 +26,13 @@
       grid-template-rows: repeat(9, 1fr);
       width: 90vmin;
       height: 90vmin;
+      border: 1px solid #aaa;
     }
 
     .cell {
-      background: white;
+      border: 1px solid #aaa;
+      background-color: white;
       aspect-ratio: 1 / 1;
-      box-sizing: border-box;
     }
   </style>
 </head>
@@ -35,26 +40,12 @@
   <div class="sudoku" id="sudoku"></div>
 
   <script>
-    const container = document.getElementById("sudoku");
+    const board = document.getElementById("sudoku");
 
-    for (let row = 0; row < 9; row++) {
-      for (let col = 0; col < 9; col++) {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-
-        // Ustal grubość ramek na podstawie pozycji
-        const top = row % 3 === 0 ? 3 : 1;
-        const bottom = row === 8 ? 3 : 0;
-        const left = col % 3 === 0 ? 3 : 1;
-        const right = col === 8 ? 3 : 0;
-
-        cell.style.borderTop = `${top}px solid black`;
-        cell.style.borderBottom = `${bottom || 1}px solid black`;
-        cell.style.borderLeft = `${left}px solid black`;
-        cell.style.borderRight = `${right || 1}px solid black`;
-
-        container.appendChild(cell);
-      }
+    for (let i = 0; i < 81; i++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      board.appendChild(cell);
     }
   </script>
 </body>
