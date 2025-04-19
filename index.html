@@ -24,7 +24,6 @@
     display: grid;
     grid-template-columns: repeat(9, 40px);
     grid-template-rows: repeat(9, 40px);
-    gap: 0;
     background: white;
     border: 3px solid black;
   }
@@ -32,10 +31,10 @@
   .cell {
     width: 40px;
     height: 40px;
-    border: 1px solid #ccc;
     text-align: center;
     font-size: 20px;
     box-sizing: border-box;
+    border: none; /* 👈 kluczowe */
   }
 
   .cell:focus {
@@ -43,8 +42,8 @@
     background-color: #eef;
   }
 
-  /* ✅ Grube zewnętrzne obramowanie */
-  .cell:nth-child(9n + 1) {
+  /* ✅ Zewnętrzna ramka */
+  .cell:nth-child(9n+1) {
     border-left: 3px solid black;
   }
 
@@ -56,12 +55,12 @@
     border-right: 3px solid black;
   }
 
-  .cell:nth-last-child(-n+9) {
+  .cell:nth-child(n+73) {
     border-bottom: 3px solid black;
   }
 
   /* ✅ Grube linie wewnętrzne co 3 kolumny */
-  .cell:nth-child(n):nth-child(3n) {
+  .cell:nth-child(3n) {
     border-right: 2px solid black;
   }
 
