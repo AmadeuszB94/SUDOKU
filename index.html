@@ -3,58 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <title>Sudoku 9x9</title>
-body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: start;
-  height: 100vh;
-  margin: 0;
-  padding-top: 30px;
-  background: #f0f0f0;
-}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    height: 100vh;
+    margin: 0;
+    padding-top: 30px;
+    background: #f0f0f0;
+  }
 
-h1 {
-  margin-bottom: 20px;
-}
+  h1 {
+    margin-bottom: 20px;
+  }
 
-/* Cała plansza: 3x3 boksy, każdy 3x3 */
-.sudoku {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  grid-template-rows: repeat(3, auto);
-  gap: 0;
-  background: black;              /* widoczne zewnętrzne tło */
-  border: 3px solid black;        /* 🟢 najgrubsza ramka zewnętrzna */
-  padding: 2px;
-}
+  .sudoku {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    grid-template-rows: repeat(3, auto);
+    gap: 0;
+    background: black;
+    border: 3px solid black; /* 🟢 Zewnętrzna gruba ramka */
+    padding: 2px;
+  }
 
-/* Każdy z 9 boksów 3x3 */
-.box {
-  display: grid;
-  grid-template-columns: repeat(3, 40px);
-  grid-template-rows: repeat(3, 40px);
-  gap: 0;
-  background: black;              /* wewnętrzna ramka boksu */
-  border: 2px solid black;        /* 🟡 średnia ramka – obrys boksu */
-}
+  .box {
+    display: grid;
+    grid-template-columns: repeat(3, 40px);
+    grid-template-rows: repeat(3, 40px);
+    gap: 0;
+    background: black;
+    box-sizing: border-box;
+    border: 2px solid black; /* 🟡 Ramka dla każdego z 9 boksów 3x3 */
+  }
 
-/* Każda z 81 komórek */
-.cell {
-  width: 40px;
-  height: 40px;
-  text-align: center;
-  font-size: 20px;
-  border: 1px solid #ccc;         /* 🔵 cienka ramka komórki */
-  outline: none;
-  background: white;
-  box-sizing: border-box;
-}
+  .cell {
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    font-size: 20px;
+    background: white;
+    border: 1px solid black; /* 🔵 Wyraźna cienka ramka każdej komórki */
+    outline: none;
+    box-sizing: border-box;
+  }
 
-.cell:focus {
-  background-color: #eef;
-}
+  .cell:focus {
+    background-color: #eef;
+  }
+</style>
 </head>
 <body>
 
