@@ -3,73 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <title>Sudoku 9x9</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: start;
-      height: 100vh;
-      margin: 0;
-      padding-top: 30px;
-      background: #f0f0f0;
-    }
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    height: 100vh;
+    margin: 0;
+    padding-top: 30px;
+    background: #f0f0f0;
+  }
 
-    h1 {
-      margin-bottom: 20px;
-    }
+  h1 {
+    margin-bottom: 20px;
+  }
 
-    .sudoku {
-      display: grid;
-      grid-template-columns: repeat(9, 40px);
-      grid-template-rows: repeat(9, 40px);
-      gap: 0;
-      border: 3px solid black;
-      background: white;
-    }
+  .sudoku {
+    display: grid;
+    grid-template-columns: repeat(9, 40px);
+    grid-template-rows: repeat(9, 40px);
+    gap: 0;
+    background: white;
+    border: 3px solid black;
+  }
 
-    .cell {
-      width: 40px;
-      height: 40px;
-      border: 1px solid #ccc;
-      text-align: center;
-      font-size: 20px;
-      box-sizing: border-box;
-    }
+  .cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 20px;
+    box-sizing: border-box;
+  }
 
-    .cell:focus {
-      outline: none;
-      background-color: #eef;
-    }
+  .cell:focus {
+    outline: none;
+    background-color: #eef;
+  }
 
-    /* Pogrubienie co 3 pola */
-    .cell:nth-child(3n) {
-      border-right: 2px solid black;
-    }
+  /* ✅ Grube zewnętrzne obramowanie */
+  .cell:nth-child(9n + 1) {
+    border-left: 3px solid black;
+  }
 
-    .sudoku .cell:nth-child(n+19):nth-child(-n+27),
-    .sudoku .cell:nth-child(n+46):nth-child(-n+54),
-    .sudoku .cell:nth-child(n+73):nth-child(-n+81) {
-      border-bottom: 2px solid black;
-    }
+  .cell:nth-child(-n+9) {
+    border-top: 3px solid black;
+  }
 
-    /* Pogrubienie pionowe co 3 kolumny */
-    .sudoku .cell:nth-child(9n+1),
-    .sudoku .cell:nth-child(9n+4),
-    .sudoku .cell:nth-child(9n+7) {
-      border-left: 2px solid transparent;
-    }
+  .cell:nth-child(9n) {
+    border-right: 3px solid black;
+  }
 
-    .sudoku .cell:nth-child(9n) {
-      border-right: 2px solid black;
-    }
+  .cell:nth-last-child(-n+9) {
+    border-bottom: 3px solid black;
+  }
 
-    .sudoku .cell:nth-child(-n+9) {
-      border-top: 2px solid black;
-    }
+  /* ✅ Grube linie wewnętrzne co 3 kolumny */
+  .cell:nth-child(n):nth-child(3n) {
+    border-right: 2px solid black;
+  }
 
-  </style>
+  /* ✅ Grube linie wewnętrzne co 3 rzędy */
+  .cell:nth-child(n+19):nth-child(-n+27),
+  .cell:nth-child(n+46):nth-child(-n+54),
+  .cell:nth-child(n+73):nth-child(-n+81) {
+    border-bottom: 2px solid black;
+  }
+</style>
+
 </head>
 <body>
 
