@@ -1,56 +1,70 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sudoku Multiplayer</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
+      margin: 0;
       background: #f7f7f7;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 20px;
+      padding: 10px;
     }
 
     h1 {
-      margin-bottom: 10px;
+      margin-top: 10px;
+      font-size: 24px;
     }
 
-    select {
-      margin-bottom: 20px;
-      padding: 5px 10px;
-      font-size: 16px;
+    .info {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 10px;
+      text-align: center;
     }
 
     .sudoku-board {
       display: grid;
-      grid-template-columns: repeat(9, 40px);
-      grid-template-rows: repeat(9, 40px);
-      border: 2px solid #333;
+      grid-template-columns: repeat(9, 1fr);
+      width: 90vw;
+      max-width: 450px;
+      aspect-ratio: 1 / 1;
+      gap: 1px;
+      background: #333;
+      border: 3px solid #333;
     }
 
     .cell {
-      width: 40px;
-      height: 40px;
+      font-size: 3.5vw;
+      max-font-size: 24px;
       text-align: center;
-      font-size: 18px;
-      border: 1px solid #aaa;
-      box-sizing: border-box;
-      background-color: white;
+      background: white;
+      border: none;
+      outline: none;
+      width: 100%;
+      height: 100%;
     }
 
     .cell.fixed {
-      background-color: #f0f0f0;
+      background: #eee;
       font-weight: bold;
       pointer-events: none;
     }
 
     .cell:focus {
-      background-color: #e0f7ff;
+      background: #cceeff;
     }
 
-    .cell:nth-child(3n+1) {
+    .cell {
+      border: 1px solid #aaa;
+    }
+
+    .sudoku-board .cell:nth-child(3n+1) {
       border-left: 2px solid #333;
     }
 
@@ -67,11 +81,41 @@
     .cell:nth-last-child(-n+9) {
       border-bottom: 2px solid #333;
     }
+
+    .number-pad {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 10px;
+      margin: 20px auto;
+      width: 90vw;
+      max-width: 450px;
+    }
+
+    .number-button {
+      aspect-ratio: 1 / 1;
+      font-size: 18px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+
+    .number-button:active {
+      background: #ccc;
+    }
+
+    select {
+      margin-top: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
 <h1>Sudoku</h1>
+<div class="info" id="gameInfo"></div>
+
 <select id="difficulty">
   <option value="easy">Łatwy</option>
   <option value="medium">Średni</option>
@@ -80,47 +124,68 @@
 </select>
 
 <div class="sudoku-board" id="sudoku-board"></div>
+<div class="number-pad" id="number-pad"></div>
 
 <script>
-  const boardElement = document.getElementById("sudoku-board");
-  const difficultySelect = document.getElementById("difficulty");
+  const boardEl = document.getElementById("sudoku-board");
+  const numberPad = document.getElementById("number-pad");
+  const difficultyEl = document.getElementById("difficulty");
+  const gameInfo = document.getElementById("gameInfo");
 
-  function createEmptyGrid() {
-    return Array.from({ length: 9 }, () => Array(9).fill(0));
+  let selectedCell = null;
+
+  function getSeedFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    let seed = params.get("game");
+    if (!seed) {
+      seed = Math.floor(Math.random() * 999999).toString();
+      window.location.search = "?game=" + seed;
+    }
+    return seed;
   }
 
-  function shuffle(array) {
+  function seededRandom(seed) {
+    let x = Math.sin(parseInt(seed)) * 10000;
+    return () => {
+      x = Math.sin(x) * 10000;
+      return x - Math.floor(x);
+    };
+  }
+
+  function shuffle(array, rand) {
     for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rand() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+  }
+
+  function createEmptyGrid() {
+    return Array.from({ length: 9 }, () => Array(9).fill(0));
   }
 
   function isValid(grid, row, col, num) {
     for (let i = 0; i < 9; i++) {
       if (grid[row][i] === num || grid[i][col] === num) return false;
     }
-
-    const startRow = row - row % 3;
-    const startCol = col - col % 3;
+    const boxRow = row - row % 3;
+    const boxCol = col - col % 3;
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
-        if (grid[startRow + i][startCol + j] === num) return false;
+        if (grid[boxRow + i][boxCol + j] === num) return false;
       }
     }
-
     return true;
   }
 
-  function solve(grid) {
+  function solve(grid, rand) {
     for (let row = 0; row < 9; row++) {
       for (let col = 0; col < 9; col++) {
         if (grid[row][col] === 0) {
-          for (let num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) {
+          for (let num of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9], rand)) {
             if (isValid(grid, row, col, num)) {
               grid[row][col] = num;
-              if (solve(grid)) return true;
+              if (solve(grid, rand)) return true;
               grid[row][col] = 0;
             }
           }
@@ -131,29 +196,28 @@
     return true;
   }
 
-  function generateFullBoard() {
+  function generateFullBoard(seed) {
     const grid = createEmptyGrid();
-    solve(grid);
+    const rand = seededRandom(seed);
+    solve(grid, rand);
     return grid;
   }
 
-  function removeCells(grid, difficulty) {
-    const newGrid = grid.map(row => [...row]);
-    let cellsToRemove;
+  function removeCells(grid, difficulty, rand) {
+    const newGrid = grid.map(r => [...r]);
+    let holes = {
+      easy: 35,
+      medium: 45,
+      hard: 55,
+      extreme: 60
+    }[difficulty];
 
-    switch (difficulty) {
-      case 'easy': cellsToRemove = 35; break;
-      case 'medium': cellsToRemove = 45; break;
-      case 'hard': cellsToRemove = 55; break;
-      case 'extreme': cellsToRemove = 60; break;
-    }
-
-    while (cellsToRemove > 0) {
-      const row = Math.floor(Math.random() * 9);
-      const col = Math.floor(Math.random() * 9);
+    while (holes > 0) {
+      const row = Math.floor(rand() * 9);
+      const col = Math.floor(rand() * 9);
       if (newGrid[row][col] !== 0) {
         newGrid[row][col] = 0;
-        cellsToRemove--;
+        holes--;
       }
     }
 
@@ -161,7 +225,7 @@
   }
 
   function drawBoard(grid) {
-    boardElement.innerHTML = '';
+    boardEl.innerHTML = "";
     for (let row = 0; row < 9; row++) {
       for (let col = 0; col < 9; col++) {
         const cell = document.createElement("input");
@@ -172,30 +236,45 @@
         if (grid[row][col] !== 0) {
           cell.value = grid[row][col];
           cell.classList.add("fixed");
-          cell.disabled = true;
         } else {
-          cell.addEventListener("input", function () {
-            this.value = this.value.replace(/[^1-9]/g, "");
+          cell.addEventListener("focus", () => selectedCell = cell);
+          cell.addEventListener("input", () => {
+            cell.value = cell.value.replace(/[^1-9]/g, "");
           });
         }
 
-        boardElement.appendChild(cell);
+        boardEl.appendChild(cell);
       }
     }
   }
 
-  function generateSudoku(difficulty = 'easy') {
-    const fullBoard = generateFullBoard();
-    const puzzle = removeCells(fullBoard, difficulty);
+  function generateGame(seed, difficulty) {
+    const rand = seededRandom(seed);
+    const fullBoard = generateFullBoard(seed);
+    const puzzle = removeCells(fullBoard, difficulty, rand);
     drawBoard(puzzle);
+    gameInfo.innerText = `ID planszy: ${seed}`;
   }
 
-  // Pierwsze uruchomienie
-  generateSudoku('easy');
+  // Panel 1–9
+  for (let i = 1; i <= 9; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.className = "number-button";
+    btn.addEventListener("click", () => {
+      if (selectedCell && !selectedCell.classList.contains("fixed")) {
+        selectedCell.value = i;
+        selectedCell.focus();
+      }
+    });
+    numberPad.appendChild(btn);
+  }
 
-  // Zmiana poziomu trudności
-  difficultySelect.addEventListener("change", (e) => {
-    generateSudoku(e.target.value);
+  const seed = getSeedFromUrl();
+  generateGame(seed, difficultyEl.value);
+
+  difficultyEl.addEventListener("change", () => {
+    generateGame(seed, difficultyEl.value);
   });
 </script>
 
