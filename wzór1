@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Multiplayer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap">
+  <style>
+    body {
+      margin: 0;
+      background: #f4f4f4;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .game-id {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 15px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 1px;
+      width: 100%;
+      max-width: 450px;
+      aspect-ratio: 1 / 1;
+      background: #333;
+      border: 3px solid #333;
+    }
+
+    .cell {
+      width: 100%;
+      height: 100%;
+      font-size: 4vw;
+      max-font-size: 24px;
+      text-align: center;
+      border: none;
+      outline: none;
+      background: white;
+    }
+
+    .cell.fixed {
+      background: #eee;
+      font-weight: bold;
+      pointer-events: none;
+    }
+
+    .cell:focus {
+      background: #ccf;
+    }
+
+    .cell {
+      border: 1px solid #aaa;
+    }
+
+    .board .cell:nth-child(3n+1) {
+      border-left: 2px solid #333;
+    }
+
+    .board .cell:nth-child(n+1):nth-child(-n+9),
+    .board .cell:nth-child(n+28):nth-child(-n+36),
+    .board .cell:nth-child(n+55):nth-child(-n+63) {
+      border-top: 2px solid #333;
+    }
+
+    .cell:nth-child(9n) {
+      border-right: 2px solid #333;
+    }
+
+    .cell:nth-last-child(-n+9) {
+      border-bottom: 2px solid #333;
+    }
+
+    .controls, .number-pad {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 15px auto;
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .btn {
+      font-size: 16px;
+      padding: 10px;
+      flex: 1 0 22%;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      background: #ddd;
+      cursor: pointer;
+    }
+
+    .btn:active {
+      background: #bbb;
+    }
+
+    .number-btn {
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Sudoku</h1>
+<div class="game-id" id="gameInfo">ID planszy: </div>
+
+<div class="board" id="sudoku-board"></div>
+
+<div class="number-pad" id="number-pad"></div>
+
+<div class="controls">
+  <button class="btn" onclick="erase()">🧽 Erase</button>
+  <button class="btn" onclick="undo()">↩️ Undo</button>
+  <button class="btn" onclick="check()">✔️ Check</button>
+  <button class="btn" onclick="hint()">💡 Hint</button>
+</div>
+
+<script>
+  const boardEl = document.getElementById("sudoku-board");
+  const numberPadEl = document.getElementById("number-pad");
+  const gameInfo = document.getElementById("gameInfo");
+
+  let selectedCell = null;
+  let lastMove = null;
+  let fullSolution = [];
+
+  const seed = getSeedFromUrl();
+  gameInfo.textContent = "ID planszy: " + seed;
+
+  function getSeedFromUrl() {
+    const params = new URLSearchParams(location.search);
+    let seed = params.get("game");
+    if (!seed) {
+      seed = Math.floor(Math.random() * 999999).toString();
+      window.location.search = "?game=" + seed;
+    }
+    return seed;
+  }
+
+  function seededRandom(seed) {
+    let x = Math.sin(parseInt(seed)) * 10000;
+    return () => {
+      x = Math.sin(x) * 10000;
+      return x - Math.floor(x);
+    };
+  }
+
+  function shuffle(array, rand) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function createEmptyGrid() {
+    return Array.from({ length: 9 }, () => Array(9).fill(0));
+  }
+
+  function isValid(grid, row, col, num) {
+    for (let i = 0; i < 9; i++) {
+      if (grid[row][i] === num || grid[i][col] === num) return false;
+    }
+    const boxRow = row - row % 3;
+    const boxCol = col - col % 3;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        if (grid[boxRow + i][boxCol + j] === num) return false;
+      }
+    }
+    return true;
+  }
+
+  function solve(grid, rand) {
+    for (let row = 0; row < 9; row++) {
+      for (let col = 0; col < 9; col++) {
+        if (grid[row][col] === 0) {
+          for (let num of shuffle([1,2,3,4,5,6,7,8,9], rand)) {
+            if (isValid(grid, row, col, num)) {
+              grid[row][col] = num;
+              if (solve(grid, rand)) return true;
+              grid[row][col] = 0;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function removeCells(grid, holes, rand) {
+    const newGrid = grid.map(r => [...r]);
+    while (holes > 0) {
+      const r = Math.floor(rand() * 9);
+      const c = Math.floor(rand() * 9);
+      if (newGrid[r][c] !== 0) {
+        newGrid[r][c] = 0;
+        holes--;
+      }
+    }
+    return newGrid;
+  }
+
+  function drawBoard(puzzle) {
+    boardEl.innerHTML = "";
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        const cell = document.createElement("input");
+        cell.className = "cell";
+        cell.type = "text";
+        cell.maxLength = 1;
+
+        if (puzzle[r][c] !== 0) {
+          cell.value = puzzle[r][c];
+          cell.classList.add("fixed");
+        } else {
+          cell.addEventListener("focus", () => selectedCell = cell);
+          cell.addEventListener("input", () => {
+            cell.value = cell.value.replace(/[^1-9]/g, "");
+            lastMove = { cell, value: cell.value };
+          });
+        }
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function generateGame(seed) {
+    const rand = seededRandom(seed);
+    const full = createEmptyGrid();
+    solve(full, rand);
+    fullSolution = full.map(r => [...r]);
+    const puzzle = removeCells(full, 45, rand); // medium
+    drawBoard(puzzle);
+  }
+
+  for (let i = 1; i <= 9; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.className = "btn number-btn";
+    btn.addEventListener("click", () => {
+      if (selectedCell && !selectedCell.classList.contains("fixed")) {
+        lastMove = { cell: selectedCell, value: selectedCell.value };
+        selectedCell.value = i;
+        selectedCell.focus();
+      }
+    });
+    numberPadEl.appendChild(btn);
+  }
+
+  function erase() {
+    if (selectedCell && !selectedCell.classList.contains("fixed")) {
+      lastMove = { cell: selectedCell, value: selectedCell.value };
+      selectedCell.value = "";
+    }
+  }
+
+  function undo() {
+    if (lastMove) {
+      lastMove.cell.value = lastMove.value;
+      lastMove.cell.focus();
+      lastMove = null;
+    }
+  }
+
+  function check() {
+    const cells = [...document.querySelectorAll(".cell")];
+    let correct = 0;
+    cells.forEach((cell, i) => {
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+      const expected = fullSolution[row][col];
+      if (cell.value == expected) {
+        cell.style.backgroundColor = "#d4ffd4";
+        correct++;
+      } else if (!cell.classList.contains("fixed")) {
+        cell.style.backgroundColor = "#ffd4d4";
+      }
+    });
+    alert(`Poprawnych pól: ${correct} / 81`);
+  }
+
+  function hint() {
+    const cells = [...document.querySelectorAll(".cell")];
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      const row = Math.floor(i / 9);
+      const col = i % 9;
+      if (!cell.classList.contains("fixed") && cell.value === "") {
+        cell.value = fullSolution[row][col];
+        cell.style.backgroundColor = "#ffffcc";
+        break;
+      }
+    }
+  }
+
+  generateGame(seed);
+</script>
+
+</body>
+</html>
